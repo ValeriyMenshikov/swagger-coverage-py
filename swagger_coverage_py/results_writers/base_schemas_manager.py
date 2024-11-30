@@ -10,6 +10,7 @@ from requests import Response
 
 from swagger_coverage_py.configs import API_DOCS_FORMAT
 from swagger_coverage_py.uri import URI
+import pathlib
 
 
 class ApiDocsManagerBase:
