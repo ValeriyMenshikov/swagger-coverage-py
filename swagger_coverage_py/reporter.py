@@ -79,24 +79,26 @@ class CoverageReporter:
 
     def generate_report(self):
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
-        base_dir = os.path.join(
-            os.path.dirname(__file__), "swagger-coverage-commandline"
-        )
-        lib_path = os.path.join(base_dir, "lib", "*")
 
-        classpath = lib_path.replace("/", os.sep)
-        command = [
-            "java",
-            "-cp",
-            classpath,
-            "com.github.viclovsky.swagger.coverage.CommandLine",
-            "-s",
-            self.swagger_doc_file,
-            "-i",
-            self.output_dir,
-        ]
+        inner_location = os.path.join(
+            "swagger-coverage-commandline",
+            "bin",
+            "swagger-coverage-commandline.bat"
+            if platform.system() == "Windows"
+            else "swagger-coverage-commandline",
+        )
+        cmd_path = os.path.join(os.path.dirname(__file__), inner_location)
+        assert Path(cmd_path).exists(), (
+            f"No commandline tools is found in following locations:\n{cmd_path}\n"
+        )
+
+        command = [cmd_path, "-s", self.swagger_doc_file, "-i", self.output_dir]
         if self.swagger_coverage_config:
             command.extend(["-c", self.swagger_coverage_config])
+
+        if platform.system() == "Windows":
+            command = [arg.replace("/", "\\") for arg in command]
+            command = ["cmd", "/c", *command]
 
         if not DEBUG_MODE:
             try:
