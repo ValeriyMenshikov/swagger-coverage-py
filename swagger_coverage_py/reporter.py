@@ -78,6 +78,7 @@ class CoverageReporter:
             )
 
     def generate_report(self):
+        Path(self.output_dir).mkdir(parents=True, exist_ok=True)
         base_dir = os.path.join(
             os.path.dirname(__file__), "swagger-coverage-commandline"
         )
@@ -98,12 +99,22 @@ class CoverageReporter:
             command.extend(["-c", self.swagger_coverage_config])
 
         if not DEBUG_MODE:
-            subprocess.run(
-                command,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                check=True,
-            )
+            try:
+                subprocess.run(
+                    command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    check=True,
+                )
+            except subprocess.CalledProcessError as e:
+                raise RuntimeError(
+                    "swagger-coverage CommandLine failed. "
+                    f"Command: {e.cmd}\n"
+                    f"Exit code: {e.returncode}\n"
+                    f"STDOUT:\n{e.stdout}\n"
+                    f"STDERR:\n{e.stderr}"
+                ) from e
         else:
             subprocess.run(command, check=True)
 
